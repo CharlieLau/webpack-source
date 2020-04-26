@@ -1,4 +1,4 @@
-
+const MyPlugin =require('./plugins/myPlugin')
 
 module.exports = {
     mode:'development',
@@ -6,5 +6,8 @@ module.exports = {
     output:{
         path:__dirname+'/dist'
     },
-    devtool:'none'
+    devtool:'none',
+    plugins:[
+        new MyPlugin()
+    ]
 }
