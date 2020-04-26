@@ -115,7 +115,6 @@ module.exports = 'hello world'
     }
 
     function webpackJsonpCallback(data) {
-        debugger
         const resolves = []
         const chunkIds = data[0]
         const moreModules = data[1];
