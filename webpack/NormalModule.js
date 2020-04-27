@@ -70,7 +70,7 @@ module.exports = class NormalModule {
             },
             ExportDefaultDeclaration(nodePath) {
                 let node = nodePath.node
-                const buildRequire = template(`__webpack_exports__["default"] = TARGET`)
+                const buildRequire = template(`exports["default"] = TARGET`)
                 const exportsAST = buildRequire({
                     TARGET: node.declaration // 替换节点后面的
                 })
@@ -78,7 +78,7 @@ module.exports = class NormalModule {
             },
             ExportNamedDeclaration(nodePath) {
                 let node = nodePath.node
-                const buildRequire = template(`__webpack_exports__[NAME] = TARGET`)
+                const buildRequire = template(`exports[NAME] = TARGET`)
                 const exportsAST = buildRequire({
                     NAME: types.stringLiteral(node.declaration.declarations[0].id.name),
                     TARGET: node.declaration.declarations[0].init, // 替换节点后面的
@@ -91,7 +91,6 @@ module.exports = class NormalModule {
             code
         } = generate(ast)
         this._ast = ast;
-        console.log(code)
         this.moduleId = './' + path.posix.relative(this.context, this.request);
         this._source = code;
         compilation.modules.push(this);

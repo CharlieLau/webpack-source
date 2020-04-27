@@ -19,6 +19,8 @@
     "babel-traverse": "^6.26.0",
     "babel-types": "^6.26.0",
     "babylon": "^6.18.0",
+    "ejs": "^3.1.2",
+    "mkdirp": "^1.0.4",
     "tapable": "^1.1.3"
   }
 }

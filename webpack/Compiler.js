@@ -4,8 +4,10 @@ const {
     AsyncParallelHook,
     Tapable
 } = require('tapable')
-const  Compilation=  require('./Compilation')
-
+const Compilation = require('./Compilation')
+const mkdirp = require('mkdirp')
+const path = require('path')
+const Stats = require('./Stats')
 
 module.exports = class Compiler extends Tapable {
 
@@ -30,10 +32,29 @@ module.exports = class Compiler extends Tapable {
             done: new AsyncSeriesHook(["stats"])
         }
     }
-    run(callback) {
+    emitAssets(compilation, callback) {
+        const emitFiles = err => {
+            //是一个对象，对象上有属性的值 {文件名字，源码}
+            let assets = compilation.assets;
+            for (let file in assets) {
+                let source = assets[file];
+                let targetPath = path.posix.join(this.options.output.path, file);
+                this.outputFileSystem.writeFileSync(targetPath, source);
+            }
+            callback();
+        };
+        this.hooks.emit.callAsync(compilation, (err) => {
+            mkdirp(this.options.output.path).then(emitFiles)
+        });
+    }
+    run(finallyCallback) {
         const onCompiled = (err, compilation) => {
-            console.log('TODO: 处理编译完成后 文件生成')
-            callback()
+            this.emitAssets(compilation, err => {
+                const stats = new Stats(compilation);
+                this.hooks.done.callAsync(stats, err => {
+                    return finallyCallback();
+                });
+            });
         }
 
         this.hooks.beforeRun.callAsync(this, err => {
@@ -55,7 +76,11 @@ module.exports = class Compiler extends Tapable {
             const compilation = this.newCompilation();
             this.hooks.make.callAsync(compilation, err => {
                 // seal 文件封装
-                onCompiled(null, compilation)
+                compilation.seal(err => {
+                    this.hooks.afterCompile.callAsync(compilation, err => {
+                        return onCompiled(null, compilation); //写入文件系统
+                    });
+                })
             })
         })
     }
