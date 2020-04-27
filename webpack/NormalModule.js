@@ -70,14 +70,20 @@ module.exports = class NormalModule {
             },
             ExportDefaultDeclaration(nodePath) {
                 let node = nodePath.node
-                if ('ObjectExpression' === node.declaration.type) { // 如果default 是个对象类型
-                    const buildRequire = template(`module.exports.default=TARGET`)
-                    const exportsAST = buildRequire({
-                        TARGET: node.declaration
-                    })
-                    nodePath.replaceWith(exportsAST)
-                }
-
+                const buildRequire = template(`__webpack_exports__["default"] = TARGET`)
+                const exportsAST = buildRequire({
+                    TARGET: node.declaration // 替换节点后面的
+                })
+                nodePath.replaceWith(exportsAST)
+            },
+            ExportNamedDeclaration(nodePath) {
+                let node = nodePath.node
+                const buildRequire = template(`__webpack_exports__[NAME] = TARGET`)
+                const exportsAST = buildRequire({
+                    NAME: types.stringLiteral(node.declaration.declarations[0].id.name),
+                    TARGET: node.declaration.declarations[0].init, // 替换节点后面的
+                })
+                nodePath.replaceWith(exportsAST)
             }
         })
 
